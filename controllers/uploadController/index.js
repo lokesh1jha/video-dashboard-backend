@@ -3,6 +3,7 @@ const fs = require('fs');
 const UploadService = require('../services/UploadService');
 const VideoService = require('../services/VideoService');
 
+//controller to upload 
 const uploadUneditedVideo = async (req, res) => {
   try {
     const uploadedFile = await UploadService.uploadFile(req.file);
