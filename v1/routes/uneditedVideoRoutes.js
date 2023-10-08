@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const UploadController = require('../../controllers/uploadController/index.js');
-const { validateVideoUpload, authorizeUser } = require('../middlewares');
+const { validateVideoUpload, authorizeUser } = require('../../middleware/authorization.js');
 
 // Route for uploading unedited video
 router.post(
