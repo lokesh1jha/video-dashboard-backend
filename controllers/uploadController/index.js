@@ -26,6 +26,23 @@ const uploadUneditedVideo = async (req, res) => {
   }
 };
 
+const { uploadVideoToYoutube } = require('./youtubeService');
+
+const uploadToYoutube = async (req, res) => {
+    const { s3Url, title, description, tags } = req.body;
+
+    try {
+        const videoId = await uploadVideoToYoutube(s3Url, title, description, tags);
+
+        return res.status(200).json({ message: "Video uploaded to YouTube successfully", videoId });
+    } catch (error) {
+        console.error("Upload to YouTube Controller Error: ", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+
 module.exports = {
   uploadUneditedVideo,
+  uploadToYoutube
 };
