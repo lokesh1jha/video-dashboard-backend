@@ -1,17 +1,42 @@
+const {findUserWithMobileOrEmail,insertUser,findUsersByEmail} = require("../../../queries/users")
+const {generateOtp} = require("../../../helpers/utils")
+const EmailTemplate = require("../../../helpers/emailers/template")
+const EmailSession = require("../../../helpers/emailers/emailSession")
 const signupService = async (name, mobile, email, password) => {
     var resp = { status: 400, message: ""}
     try {
-        let isUserExists = await findUserWithMobileOrEmail(mobile, email)
-        if(isUserExists){
-            resp.message = "User Already Registered"
-            return resp;
-        }
+        
+        if(mobile && email && name){
 
+            let isUserExists = await findUserWithMobileOrEmail(mobile, email)
+
+                if(isUserExists){
+                    resp.message = "User Already Registered"
+                }else{
+                    //register user
+                    let otp = generateOtp()
+                    let createUsers = await insertUser({name,mobile,email,otp})
+                    if(createUsers){
+                        let emailBody = EmailTemplate.generateOtp(name,otp)
+                        let toAddress = email
+                        await EmailSession.sendEmail(emailBody,toAddress,"OTP Verification",)
+                    resp.status = 200
+                    resp.message = "OTP generated Successfully"
+                    }else{
+                        resp.message = "Something Went Wrong"
+                    }
+                }
+        }else{
+            resp.message = "Please Enter All Required Fields"
+            resp.status = 400
+        }
         //register user
+
+        return resp
     } catch (error) {
         console.log("Signup Failure : ", error.message)
         resp.status = 500
-        resp.message = error.message
+        resp.message = "Internal Server Error"
         return resp
     }
 }
@@ -19,7 +44,7 @@ const signupService = async (name, mobile, email, password) => {
 const loginService = async (email, password) => {
     var resp = { status: 400, message: "" }
     try {
-        let user = await findUserByEmail(email);
+        let user = await findUsersByEmail(email);
 
         if (!user) {
             resp.message = "User not found";
@@ -91,3 +116,7 @@ const verifyOTPService = async (email, otp) => {
     }
 }
 
+
+module.exports = {
+    signupService
+}
