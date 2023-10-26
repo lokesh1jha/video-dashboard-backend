@@ -2,13 +2,17 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 const bodyParser = require('body-parser');
+const auth = require("./v1/routes/authentication")
+const route = require("./v1/routes/route")
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
+app.use("/auth", auth)
+app.use(route)
 mongoose.connect('mongodb://localhost:27017/video-dashboard', {
   useNewUrlParser: true,
   useUnifiedTopology: true,

@@ -1,13 +1,10 @@
-const signupService = require('./signupService'); 
-const loginService = require('./loginService');
-const sendOTPService = require('./sendOTPService');
-const verifyOTPService = require('./verifyOTPService');
+const { signupService } = require('../../v1/services/authentication/index');
 
 const signupController = async (req, res) => {
-    const { name, mobile, email } = req.body;
+    const { name, mobile, email, user_type } = req.body;
 
     try {
-        const response = await signupService(name, mobile, email);
+        const response = await signupService(name, mobile, email, user_type);
 
         if (response.status === 200) {
             // User registered successfully
