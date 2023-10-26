@@ -2,7 +2,7 @@ const {findUserWithMobileOrEmail,insertUser,findUsersByEmail} = require("../../.
 const {generateOtp} = require("../../../helpers/utils")
 const EmailTemplate = require("../../../helpers/emailers/template")
 const EmailSession = require("../../../helpers/emailers/emailSession")
-const signupService = async (name, mobile, email, password) => {
+const signupService = async (name, mobile, email) => {
     var resp = { status: 400, message: ""}
     try {
         

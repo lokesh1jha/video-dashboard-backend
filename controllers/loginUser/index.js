@@ -1,4 +1,4 @@
-const signupService = require('./signupService'); 
+const { signupService } = require('../../v1/services/authentication/index');
 const loginService = require('./loginService');
 const sendOTPService = require('./sendOTPService');
 const verifyOTPService = require('./verifyOTPService');
