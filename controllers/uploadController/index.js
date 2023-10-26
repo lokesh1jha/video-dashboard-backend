@@ -1,19 +1,19 @@
 const fs = require('fs');
 
-const UploadService = require('../services/UploadService');
-const VideoService = require('../services/VideoService');
+// const UploadService = require('../uploadController/');
+// const VideoService = require('../services/VideoService');
 
 //controller to upload 
 const uploadUneditedVideo = async (req, res) => {
   try {
-    const uploadedFile = await UploadService.uploadFile(req.file);
+    // const uploadedFile = await UploadService.uploadFile(req.file);
 
-    const newVideo = await VideoService.createVideo({
-      title: req.body.title,
-      description: req.body.description,
-      filePath: uploadedFile.path,
-      // Add other video properties as needed
-    });
+    // const newVideo = await VideoService.createVideo({
+    //   title: req.body.title,
+    //   description: req.body.description,
+    //   filePath: uploadedFile.path,
+    //   // Add other video properties as needed
+    // });
 
     return res.status(201).json({
       message: 'Unedited video uploaded successfully',
@@ -26,13 +26,13 @@ const uploadUneditedVideo = async (req, res) => {
   }
 };
 
-const { uploadVideoToYoutube } = require('./youtubeService');
+// const { uploadVideoToYoutube } = require('./youtubeService');
 
 const uploadToYoutube = async (req, res) => {
     const { s3Url, title, description, tags } = req.body;
 
     try {
-        const videoId = await uploadVideoToYoutube(s3Url, title, description, tags);
+        // const videoId = await uploadVideoToYoutube(s3Url, title, description, tags);
 
         return res.status(200).json({ message: "Video uploaded to YouTube successfully", videoId });
     } catch (error) {

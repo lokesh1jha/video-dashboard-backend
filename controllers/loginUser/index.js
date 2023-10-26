@@ -1,7 +1,4 @@
 const { signupService } = require('../../v1/services/authentication/index');
-const loginService = require('./loginService');
-const sendOTPService = require('./sendOTPService');
-const verifyOTPService = require('./verifyOTPService');
 
 const signupController = async (req, res) => {
     const { name, mobile, email } = req.body;
