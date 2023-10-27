@@ -18,7 +18,7 @@ exports.getUserName = async (email) => {
         let userName = email.split("@")[0]
         let isUserNameUnique = await isUsersNameUnique(userName)
         let count = 1
-        while(!isUserNameUnique){
+        while(!isUserNameUnique.data){
             userName += Math.floor(Math.random() * count)
             count *= Math.floor(Math.random() * 10) + 1
             isUserNameUnique = await isUsersNameUnique(userName)

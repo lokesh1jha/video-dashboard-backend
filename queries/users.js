@@ -2,59 +2,88 @@ const userModel = require('../models/User');
 
 
 exports.userStatus = async (userId) => {
-    try{
-        let user_res = await userModel.findOne({_id:userId});
-        if(user_res){
-            return true;
-        }else{
-            return false;
-        }
-    }catch(err){
+    var resp = { status: 500, message: "" }
+    try {
+        let user_res = await userModel.findOne({ _id: userId });
+        resp.status = 200
+        resp.data = user_res.is_user_active == 1
+        return resp
+    } catch (err) {
         console.log(err.message)
-        throw err
+        resp.message = err.message
+        return resp
     }
 }
 
 
-exports.findUserWithMobileOrEmail = async (email, mobile) => {  
+exports.findUserWithMobileOrEmail = async (email, mobile) => {
+    var resp = { status: 500, message: "" }
     try {
         let user_res = await userModel.find({ $or: [{ email: email }, { mobile: mobile }] });
-        return user_res.length > 0;
+        resp.status = 200
+        resp.data = user_res.length > 0
+        return resp
     } catch (err) {
         console.log(err.message);
-        throw err;
+        resp.message = err.message
+        return resp
     }
 };
 
 
 exports.insertUser = async (data) => {
-    try{
-            let res = await userModel.create(data);
-            return res;
-
-    }catch(err){
+    var resp = { status: 500, message: "" }
+    try {
+        let res = await userModel.create(data);
+        resp.status = 200
+        resp.data = res
+        return resp
+    } catch (err) {
         console.log(err.message)
-        throw err
+        resp.message = err.message
+        return resp
     }
 }
 
-exports.findUsersByEmail = async (email) => { 
-    try{
-        let user_res = await userModel.findOne({email:email});
-        return user_res;
-
-    }catch(err){
-        console.log(err.message)    
-        throw err
+exports.findUsersByEmail = async (email) => {
+    var resp = { status: 500, message: "" }
+    try {
+        let user_res = await userModel.findOne({ email: email });
+        resp.status = 200
+        resp.data = user_res
+        return resp
+    } catch (err) {
+        console.log(err.message)
+        resp.message = err.message
+        return resp
     }
 }
 
 exports.isUsersNameUnique = async (userName) => {
+    var resp = { status: 500, message: "" }
     try {
-        let count = await userModel.count({username:userName})
-        return count == 0;
-    } catch (error) {
-        console.log("isUsersNameUnique Error: ", error.message)
-        throw error
+        let count = await userModel.count({ username: userName })
+        resp.status = 200
+        resp.data = count == 0
+        return resp
+    } catch (err) {
+        console.log("isUsersNameUnique Error: ", err.message)
+        resp.message = err.message
+        return resp
+    }
+}
+
+exports.saveOtpInDb = async (email, otp) => {
+    var resp = { status: 500, message: "" }
+    try {
+        let result = await userModel.updateOne(email, otp)
+        resp.status = 200
+        resp.data = result
+        return resp
+    }
+    catch (err) {
+        console.log("isUsersNameUnique Error: ", err.message)
+        resp.message = err.message
+        return resp
     }
 }

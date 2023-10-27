@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema({
     mobile: { type: String, unique: true },
     otp: { type: Number },
     is_premium: { type: Number, default: 0 },
-    user_type: { type: String, enum: ["client", "editor"], default: null }
+    user_type: { type: String, enum: ["client", "editor"], default: null },
+    is_user_active: {type: Number, default: 1}
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

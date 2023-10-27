@@ -1,4 +1,4 @@
-const { findUserWithMobileOrEmail, insertUser, findUsersByEmail } = require("../../../queries/users")
+const { findUserWithMobileOrEmail, insertUser, findUsersByEmail, saveOtpInDb } = require("../../../queries/users")
 const { generateOtp, getUserName } = require("../../../helpers/utils")
 const EmailTemplate = require("../../../helpers/emailers/template")
 const EmailSession = require("../../../helpers/emailers/emailSession")
@@ -16,8 +16,8 @@ const signupService = async (name, mobile, email, user_type) => {
 
 
         let isUserExists = await findUserWithMobileOrEmail(mobile, email)
-
-        if (isUserExists) {
+        
+        if (isUserExists.data) {
             resp.message = "User Already Registered"
             return resp
         }
@@ -25,9 +25,9 @@ const signupService = async (name, mobile, email, user_type) => {
         let otp = generateOtp()
         let username = await getUserName(email)
         let createUsers = await insertUser({ username, name, mobile, email, otp, user_type })
-        console.log(createUsers)
-        if (createUsers) {
-            let emailBody = EmailTemplate.generateOtp(name, otp)
+        
+        if (createUsers.status == 200) {
+            let emailBody = EmailTemplate.generateOtpHtmlBody(name, otp)
             let toAddress = email
             await EmailSession.sendEmail(emailBody, toAddress, "OTP Verification",)
             resp.status = 200
@@ -46,25 +46,19 @@ const signupService = async (name, mobile, email, user_type) => {
     }
 }
 
-const loginService = async (email, password) => {
+const loginService = async (email) => {
     var resp = { status: 400, message: "" }
     try {
         let user = await findUsersByEmail(email);
 
-        if (!user) {
+        if (user.data.length == 0) {
             resp.message = "User not found";
             return resp;
         }
 
-        //need to compare using bycrypt <password will be saved using bycrypt>
-        if (user.password === password) {
-            resp.status = 200;
-            resp.message = "Password match successful";
-        } else {
-            resp.message = "Invalid password";
-        }
+        let response = await sendOTPService(email)
 
-        return resp;
+        return response;
     } catch (error) {
         console.log("Login Failure : ", error.message);
         resp.status = 500;
@@ -77,13 +71,15 @@ const loginService = async (email, password) => {
 const sendOTPService = async (email) => {
     var resp = { status: 400, message: "" }
     try {
-        const otp = generateOTP();
+        const otp = generateOtp();
 
-        //save otp to database for verification process
+        let saveOtpPromise =  saveOtpInDb(email, otp)
 
-        // Simulated sending OTP via email, replace with actual implementation
-        sendOTPEmail(user.email, otp);
+        let optEmailBody = EmailTemplate.generateOtpHtmlBody(email, otp)
+        let sendOtpPromise = EmailSession.sendEmail(email, subject, optEmailBody)
 
+        await Promise.all[saveOtpPromise, sendOtpPromise]
+        
         resp.status = 200;
         resp.message = "OTP sent successfully";
         return resp;
@@ -98,14 +94,14 @@ const sendOTPService = async (email) => {
 const verifyOTPService = async (email, otp) => {
     var resp = { status: 400, message: "" }
     try {
-        let user = await findUserByEmail(email);
+        let user = await findUsersByEmail(email);
 
-        // if (!user) {
-        //     resp.message = "User not found";
-        //     return resp;
-        // }
+        if (!user.data.length) {
+            resp.message = "User not found";
+            return resp;
+        }
 
-        if (user.otp === otp) {
+        if (user.data.otp === otp) {
             resp.status = 200;
             resp.message = "OTP verification successful";
         } else {
@@ -123,5 +119,8 @@ const verifyOTPService = async (email, otp) => {
 
 
 module.exports = {
-    signupService
+    signupService,
+    loginService,
+    sendOTPService,
+    verifyOTPService
 }
