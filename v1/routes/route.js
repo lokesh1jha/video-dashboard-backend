@@ -12,4 +12,6 @@ const { validateVideoUpload, authorizeUser } = require('../../middleware/authori
 //   UploadController.uploadUneditedVideo
 // );
 
+
+router.post('/uplodaedited', validateVideoUpload, authorizeUser, UploadController.uploadEditedVideo)
 module.exports = router;
