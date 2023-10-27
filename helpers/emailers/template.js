@@ -1,4 +1,4 @@
-exports.generateOtp = async (name,otp) => {
+exports.generateOtpHtmlBody = async (name,otp) => {
     return (
         `
         <html>

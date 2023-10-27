@@ -40,11 +40,7 @@ const authorize = async (req, res, next) => {
 const checkUserStatus = async (userId) => {
     try{
         let is_user_active = await userStatus(userId);
-        if(is_user_active){
-            return true;
-        }else{
-            return false;
-        }
+        return is_user_active.data
     }catch(err){
         console.log(err.message)
         return false;

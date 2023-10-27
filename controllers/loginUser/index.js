@@ -1,4 +1,4 @@
-const { signupService } = require('../../v1/services/authentication/index');
+const { signupService, loginService } = require('../../v1/services/authentication/index');
 
 const signupController = async (req, res) => {
     const { name, mobile, email, user_type } = req.body;
@@ -21,10 +21,10 @@ const signupController = async (req, res) => {
 
 
 const loginController = async (req, res) => {
-    const { email, password } = req.body;
+    const { email } = req.body;
 
     try {
-        const loginResponse = await loginService(email, password);
+        const loginResponse = await loginService(email);
 
         if (loginResponse.status === 200) {
             // Login successful, send OTP
