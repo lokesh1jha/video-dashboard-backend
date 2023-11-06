@@ -7,7 +7,9 @@ const userSchema = new mongoose.Schema({
     otp: { type: Number },
     is_premium: { type: Number, default: 0 },
     user_type: { type: String, enum: ["client", "editor"], default: null },
-    is_user_active: {type: Number, default: 1}
+    is_user_active: {type: Number, default: 1},
+    created_at: { type: Date, default: Date.now },
+    updated_at: { type: Date, default: Date.now }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

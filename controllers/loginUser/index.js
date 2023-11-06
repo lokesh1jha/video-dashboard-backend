@@ -63,9 +63,24 @@ const verifyOTPController = async (req, res) => {
     }
 };
 
+const activateUserWithSubscription = async (req, res) => {
+    try {
+        let userId = req.loggedInUser;
+        const subscriptionStatus = await paymentService.processSubscription(userId);
+        if (subscriptionStatus.status == 200) {
+            return res.status(200).json({ message: "User subscription successful" });
+        }
+        return res.status(400).json({ message: subscriptionStatus.message });
+    } catch (error) {
+        console.log("User subscription error: ", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
 module.exports = {
     signupController,
     loginController,
-    verifyOTPController
+    verifyOTPController,
+    activateUserWithSubscription
 };
 
