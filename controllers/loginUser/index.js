@@ -1,8 +1,14 @@
 const { signupService, loginService } = require('../../v1/services/authentication/index');
 
+/**
+ * Controller function for user signup.
+ *
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @return {Promise<void>} Promise that resolves when the function is finished
+ */
 const signupController = async (req, res) => {
     const { name, mobile, email, user_type } = req.body;
-
     try {
         const response = await signupService(name, mobile, email, user_type);
 
@@ -20,6 +26,13 @@ const signupController = async (req, res) => {
 };
 
 
+/**
+ * Controller function for user login.
+ *
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @return {Promise<void>} It returns a promise with no specific value
+ */
 const loginController = async (req, res) => {
     const { email } = req.body;
 
@@ -45,6 +58,13 @@ const loginController = async (req, res) => {
     }
 };
 
+/**
+ * Controller function to verify OTP.
+ *
+ * @param {Object} req - the request object
+ * @param {Object} res - the response object
+ * @return {Promise} a Promise that resolves to the result of the OTP verification
+ */
 const verifyOTPController = async (req, res) => {
     const { email, otp } = req.body;
 

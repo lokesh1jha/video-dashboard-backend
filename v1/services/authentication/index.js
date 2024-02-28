@@ -4,6 +4,15 @@ const EmailTemplate = require("../../../helpers/emailers/template")
 const EmailSession = require("../../../helpers/emailers/emailSession")
 
 
+/**
+ * Signup service function for registering a new user.
+ *
+ * @param {string} name - The name of the user
+ * @param {string} mobile - The mobile number of the user
+ * @param {string} email - The email of the user
+ * @param {string} user_type - The type of the user
+ * @return {object} The response object containing status and message
+ */
 const signupService = async (name, mobile, email, user_type) => {
     var resp = { status: 400, message: "" }
     try {
@@ -46,6 +55,12 @@ const signupService = async (name, mobile, email, user_type) => {
     }
 }
 
+/**
+ * Asynchronous function for user login.
+ *
+ * @param {string} email - The email of the user
+ * @return {object} The response object with status and message
+ */
 const loginService = async (email) => {
     var resp = { status: 400, message: "" }
     try {
@@ -68,6 +83,12 @@ const loginService = async (email) => {
 }
 
 
+/**
+ * Asynchronous function to send OTP via email.
+ *
+ * @param {string} email - the email address to send OTP to
+ * @return {object} response object with status and message
+ */
 const sendOTPService = async (email) => {
     var resp = { status: 400, message: "" }
     try {
@@ -91,6 +112,13 @@ const sendOTPService = async (email) => {
     }
 }
 
+/**
+ * Verify the OTP for a given email address.
+ *
+ * @param {string} email - The email address to verify the OTP for
+ * @param {string} otp - The OTP to verify
+ * @return {object} An object containing the status and message of the OTP verification
+ */
 const verifyOTPService = async (email, otp) => {
     var resp = { status: 400, message: "" }
     try {

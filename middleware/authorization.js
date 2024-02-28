@@ -1,9 +1,17 @@
-//auth middleware
-
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Config = require("../helpers/Config");
 const {userStatus} = require("../queries/users")
+
+
+/**
+ * Function to authorize the request using JWT token.
+ *
+ * @param {Object} req - the request object
+ * @param {Object} res - the response object
+ * @param {Function} next - the next function to be called
+ * @return {Promise} Promise that resolves when authorization is successful
+ */
 const authorize = async (req, res, next) => {
     try{
         if (!req.header("Authorization")) {
