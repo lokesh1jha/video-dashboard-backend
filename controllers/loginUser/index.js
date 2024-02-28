@@ -1,5 +1,5 @@
 const { signupService, loginService } = require('../../v1/services/authentication/index');
-
+const USER_TYPE = ["client", "service_provider"];
 /**
  * Controller function for user signup.
  *
@@ -8,9 +8,9 @@ const { signupService, loginService } = require('../../v1/services/authenticatio
  * @return {Promise<void>} Promise that resolves when the function is finished
  */
 const signupController = async (req, res) => {
-    const { name, mobile, email, user_type } = req.body;
+    const { username, email, password, user_type } = req.body;
     try {
-        const response = await signupService(name, mobile, email, user_type);
+        const response = await signupService(username, email, user_type);
 
         if (response.status === 200) {
             // User registered successfully
@@ -35,7 +35,7 @@ const signupController = async (req, res) => {
  */
 const loginController = async (req, res) => {
     const { email } = req.body;
-
+    console.log(req.body)
     try {
         const loginResponse = await loginService(email);
 

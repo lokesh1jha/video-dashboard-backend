@@ -16,10 +16,10 @@ exports.userStatus = async (userId) => {
 }
 
 
-exports.findUserWithMobileOrEmail = async (email, mobile) => {
+exports.findUserWithMobileOrEmail = async (email) => {
     var resp = { status: 500, message: "" }
     try {
-        let user_res = await userModel.find({ $or: [{ email: email }, { mobile: mobile }] });
+        let user_res = await userModel.find({ email: email });
         resp.status = 200
         resp.data = user_res.length > 0
         return resp

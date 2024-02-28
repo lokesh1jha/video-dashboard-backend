@@ -1,22 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const { signupController, loginController, verifyOTPController } = require('../../controllers/loginUser/index');
-const { authorize } = require('../../middleware/authorization');
+const signupValidator = require('../../validator/signupValidator');
 
 // Route for user registration
-router.post('/register', signupController);
+router.post('/register',signupValidator, signupController);
 
 // Route for user login
 router.post('/login', loginController);
 
 //Route for verify otp
 router.post('/verifyotp', verifyOTPController)
-
-// Route for user logout
-// router.post('/logout', authorize, logoutUser);
-
-// Route for getting user profile
-// router.get('/profile', authorize, getUserProfile);
 
 
 module.exports = router;

@@ -2,50 +2,36 @@ const { findUserWithMobileOrEmail, insertUser, findUsersByEmail, saveOtpInDb } =
 const { generateOtp, getUserName } = require("../../../helpers/utils")
 const EmailTemplate = require("../../../helpers/emailers/template")
 const EmailSession = require("../../../helpers/emailers/emailSession")
+const { hashPassword } = require("../../../helpers/hashing")
 
 
 /**
  * Signup service function for registering a new user.
  *
  * @param {string} name - The name of the user
- * @param {string} mobile - The mobile number of the user
+ * @param {string} password - The password of the user
  * @param {string} email - The email of the user
  * @param {string} user_type - The type of the user
  * @return {object} The response object containing status and message
  */
-const signupService = async (name, mobile, email, user_type) => {
+const signupService = async (name, password, email, user_type) => {
     var resp = { status: 400, message: "" }
     try {
-
-        if (!(mobile && email && name && user_type)) {
-            resp.message = "Please Enter All Required Fields"
-            resp.status = 400
-            return resp
-        }
-
-
-        let isUserExists = await findUserWithMobileOrEmail(mobile, email)
+        let isUserExists = await findUserWithMobileOrEmail(email)
         
-        if (isUserExists.data) {
-            resp.message = "User Already Registered"
+        if (isUserExists.status === 200) {
+            resp.message = "User already registered with this Email id"
             return resp
         }
-        //register user
-        let otp = generateOtp()
+        
         let username = await getUserName(email)
-        let createUsers = await insertUser({ username, name, mobile, email, otp, user_type })
-        
-        if (createUsers.status == 200) {
-            let emailBody = EmailTemplate.generateOtpHtmlBody(name, otp)
-            let toAddress = email
-            await EmailSession.sendEmail(emailBody, toAddress, "OTP Verification",)
+        password = await hashPassword(password)
+        let createUsers = await insertUser({ username, name, password, email, user_type })
+
+        if (createUsers.status === 200) {
             resp.status = 200
-            resp.message = "OTP generated Successfully"
-        } else {
-            resp.message = "Something Went Wrong"
+            resp.message = "User registered successfully"
         }
-
-
         return resp
     } catch (error) {
         console.log("Signup Failure : ", error.message)
@@ -65,7 +51,6 @@ const loginService = async (email) => {
     var resp = { status: 400, message: "" }
     try {
         let user = await findUsersByEmail(email);
-
         if (user.data.length == 0) {
             resp.message = "User not found";
             return resp;
