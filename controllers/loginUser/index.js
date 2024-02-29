@@ -17,7 +17,7 @@ const signupController = async (req, res) => {
             return res.status(200).json({ message: "Registration successful" });
         } else if (response.status === 400) {
             // User already registered
-            return res.status(400).json({ message: response.message });
+            return res.status(409).json({ message: response.message });
         }
     } catch (error) {
         console.error("Signup Controller Error: ", error);
