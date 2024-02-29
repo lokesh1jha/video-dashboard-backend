@@ -1,4 +1,5 @@
 const { isUsersNameUnique } = require("../queries/users");
+const jwt = require('jsonwebtoken');
 
 exports.generateOtp = () => {
     try {
@@ -29,3 +30,14 @@ exports.getUserName = async (email) => {
         throw error
     }
 }
+
+
+exports.generateToken = async (payload, expiresIn = '1h') => {
+    try {
+        return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: expiresIn });
+    } catch (error) {
+        console.log(error.message)
+        throw error
+    }
+}
+

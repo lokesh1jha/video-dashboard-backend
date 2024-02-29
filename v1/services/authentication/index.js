@@ -72,6 +72,7 @@ const loginService = async (email, password) => {
 
         resp.status = 200;
         resp.message = "User Logged In Successfully";
+        resp.data = user.data
         return resp;
     } catch (error) {
         console.log("Login Failure : ", error.message);

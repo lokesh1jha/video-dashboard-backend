@@ -1,3 +1,4 @@
+const { generateToken } = require('../../helpers/utils');
 const { signupService, loginService } = require('../../v1/services/authentication/index');
 const USER_TYPE = ["client", "service_provider"];
 /**
@@ -39,7 +40,10 @@ const loginController = async (req, res) => {
         const loginResponse = await loginService(email, password);
 
         if (loginResponse.status === 200) {
-            return res.status(200).json({ message: "Login successful." });
+            const {_id, username, email, user_type} = loginResponse.data
+            const payload = { userId: _id, email, username, user_type };
+            const token = await generateToken(payload);
+            return res.status(200).json({ message: "Login successful." , token: token});
         } else {
             return res.status(400).json({ message: loginResponse.message });
         }
