@@ -1,4 +1,4 @@
-const { signupService, loginService } = require('../../v1/services/authentication/index');
+const { signupService, loginService, sendOTPService } = require('../../v1/services/authentication/index');
 const USER_TYPE = ["client", "service_provider"];
 /**
  * Controller function for user signup.
@@ -10,14 +10,14 @@ const USER_TYPE = ["client", "service_provider"];
 const signupController = async (req, res) => {
     const { username, email, password, user_type } = req.body;
     try {
-        const response = await signupService(username, email, user_type);
+        const response = await signupService(username, password, email, user_type);
 
         if (response.status === 200) {
             // User registered successfully
-            return res.status(200).json({ message: "Registration successful" });
+            return res.status(200).json({ status: 200, message: "Registration successful" });
         } else if (response.status === 400) {
             // User already registered
-            return res.status(409).json({ message: response.message });
+            return res.status(200).json({ status: 400, message: response.message });
         }
     } catch (error) {
         console.error("Signup Controller Error: ", error);
@@ -42,13 +42,11 @@ const loginController = async (req, res) => {
         if (loginResponse.status === 200) {
             // Login successful, send OTP
             const otp = await sendOTPService(email);
-
-            // Send OTP to the user (replace with actual logic)
-            // For example, you can send it via email or SMS
-            console.log(`Sent OTP ${otp} to ${email}`);
+            
+            console.log(`Sent OTP to ${email}`);
 
             // Return OTP to the client (for demo purposes)
-            return res.status(200).json({ message: "Login successful. OTP sent to your email.", otp });
+            return res.status(200).json({ message: "Login successful. OTP sent to your email." });
         } else {
             return res.status(400).json({ message: loginResponse.message });
         }

@@ -16,12 +16,13 @@ exports.userStatus = async (userId) => {
 }
 
 
-exports.findUserWithMobileOrEmail = async (email) => {
+exports.findUserWithEmail = async (email) => {
     var resp = { status: 500, message: "" }
     try {
         let user_res = await userModel.find({ email: email });
-        resp.status = 200
-        resp.data = user_res.length > 0
+        resp.status = user_res.length == 0 ? 200 : 400
+        resp.data = user_res
+        console.log(user_res.length, resp)
         return resp
     } catch (err) {
         console.log(err.message);
@@ -76,9 +77,11 @@ exports.isUsersNameUnique = async (userName) => {
 exports.saveOtpInDb = async (email, otp) => {
     var resp = { status: 500, message: "" }
     try {
-        let result = await userModel.updateOne(email, otp)
+        const filter = { email: email };        
+        const update = { $set: { otp: otp } };
+        let result = await userModel.updateOne(filter, update);
         resp.status = 200
-        resp.data = result
+        resp.data = result.modifiedCount //modified count is 1
         return resp
     }
     catch (err) {

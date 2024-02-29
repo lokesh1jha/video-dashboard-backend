@@ -1,4 +1,4 @@
-const { findUserWithMobileOrEmail, insertUser, findUsersByEmail, saveOtpInDb } = require("../../../queries/users")
+const { findUserWithEmail, insertUser, findUsersByEmail, saveOtpInDb } = require("../../../queries/users")
 const { generateOtp, getUserName } = require("../../../helpers/utils")
 const EmailTemplate = require("../../../helpers/emailers/template")
 const EmailSession = require("../../../helpers/emailers/emailSession")
@@ -17,13 +17,13 @@ const { hashPassword } = require("../../../helpers/hashing")
 const signupService = async (name, password, email, user_type) => {
     var resp = { status: 400, message: "" }
     try {
-        let isUserExists = await findUserWithMobileOrEmail(email)
-        
-        if (isUserExists.status === 200) {
+        let isUserExists = await findUserWithEmail(email)
+
+        if (isUserExists.status === 400) {
             resp.message = "User already registered with this Email id"
             return resp
         }
-        
+
         let username = await getUserName(email)
         password = await hashPassword(password)
         let createUsers = await insertUser({ username, name, password, email, user_type })
@@ -52,7 +52,7 @@ const loginService = async (email) => {
     try {
         let user = await findUsersByEmail(email);
         if (user.data.length == 0) {
-            resp.message = "User not found";
+            resp.message = "User not registered";
             return resp;
         }
 
@@ -79,13 +79,13 @@ const sendOTPService = async (email) => {
     try {
         const otp = generateOtp();
 
-        let saveOtpPromise =  saveOtpInDb(email, otp)
-
-        let optEmailBody = EmailTemplate.generateOtpHtmlBody(email, otp)
+        let saveOtpPromise = saveOtpInDb(email, otp)
+        let subject = "OTP for Login"
+        let optEmailBody = await EmailTemplate.generateOtpHtmlBody(email, otp)
         let sendOtpPromise = EmailSession.sendEmail(email, subject, optEmailBody)
 
         await Promise.all[saveOtpPromise, sendOtpPromise]
-        
+
         resp.status = 200;
         resp.message = "OTP sent successfully";
         return resp;
