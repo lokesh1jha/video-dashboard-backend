@@ -1,4 +1,4 @@
-const { signupService, loginService, sendOTPService } = require('../../v1/services/authentication/index');
+const { signupService, loginService } = require('../../v1/services/authentication/index');
 const USER_TYPE = ["client", "service_provider"];
 /**
  * Controller function for user signup.
@@ -34,19 +34,12 @@ const signupController = async (req, res) => {
  * @return {Promise<void>} It returns a promise with no specific value
  */
 const loginController = async (req, res) => {
-    const { email } = req.body;
-    console.log(req.body)
+    const { email, password } = req.body;
     try {
-        const loginResponse = await loginService(email);
+        const loginResponse = await loginService(email, password);
 
         if (loginResponse.status === 200) {
-            // Login successful, send OTP
-            const otp = await sendOTPService(email);
-            
-            console.log(`Sent OTP to ${email}`);
-
-            // Return OTP to the client (for demo purposes)
-            return res.status(200).json({ message: "Login successful. OTP sent to your email." });
+            return res.status(200).json({ message: "Login successful." });
         } else {
             return res.status(400).json({ message: loginResponse.message });
         }

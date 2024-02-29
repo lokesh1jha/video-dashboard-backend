@@ -2,7 +2,7 @@ const { findUserWithEmail, insertUser, findUsersByEmail, saveOtpInDb } = require
 const { generateOtp, getUserName } = require("../../../helpers/utils")
 const EmailTemplate = require("../../../helpers/emailers/template")
 const EmailSession = require("../../../helpers/emailers/emailSession")
-const { hashPassword } = require("../../../helpers/hashing")
+const { hashPassword, comparePassword } = require("../../../helpers/hashing")
 
 
 /**
@@ -47,7 +47,7 @@ const signupService = async (name, password, email, user_type) => {
  * @param {string} email - The email of the user
  * @return {object} The response object with status and message
  */
-const loginService = async (email) => {
+const loginService = async (email, password) => {
     var resp = { status: 400, message: "" }
     try {
         let user = await findUsersByEmail(email);
@@ -55,10 +55,24 @@ const loginService = async (email) => {
             resp.message = "User not registered";
             return resp;
         }
+        
+        let isPasswordMatch = await comparePassword(password, user.data.password);
+        if (!isPasswordMatch) {
+            resp.message = "Invalid Password";
+            return resp;
+        }
 
-        let response = await sendOTPService(email)
+        
+        // let response = await sendOTPService(email)
 
-        return response;
+        // if (response.status === 200) {
+        //     resp.status = 200;
+        //     resp.message = "OTP sent successfully";
+        // }
+
+        resp.status = 200;
+        resp.message = "User Logged In Successfully";
+        return resp;
     } catch (error) {
         console.log("Login Failure : ", error.message);
         resp.status = 500;
