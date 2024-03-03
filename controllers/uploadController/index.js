@@ -1,7 +1,7 @@
-const fs = require('fs');
+const YoutubeVideo = require('../../models/YoutubeVideo');
+const { google } = require('googleapis');
+const OAuth2 = google.auth.OAuth2;
 
-// const UploadService = require('../uploadController/');
-// const VideoService = require('../services/VideoService');
 
 //controller to upload 
 const uploadUneditedVideo = async (req, res) => {
@@ -29,18 +29,44 @@ const uploadUneditedVideo = async (req, res) => {
 // const { uploadVideoToYoutube } = require('./youtubeService');
 
 const uploadToYoutube = async (req, res) => {
-    const { s3Url, title, description, tags } = req.body;
-
-    try {
-        // const videoId = await uploadVideoToYoutube(s3Url, title, description, tags);
-
-        return res.status(200).json({ message: "Video uploaded to YouTube successfully", videoId });
-    } catch (error) {
-        console.error("Upload to YouTube Controller Error: ", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-    }
+  try {
+   
+    res.status(200).json({ urlToReDirect: authUrl });
+  } catch (error) {
+    console.error('Error generating auth URL:', error);
+    res.status(500).json({ message: 'Failed to generate auth URL' });
+  }
+  // try {
+  //   // Process and save video details to MongoDB
+  //   const video = new YoutubeVideo(req.body);
+  //   await video.save();
+  //   res.status(201).json({ message: 'Video uploaded successfully' });
+  // } catch (error) {
+  //   console.error('Error uploading video:', error);
+  //   res.status(500).json({ message: 'Failed to upload video' });
+  // }
 }
 
+const youtubeAuthSaveCredentials = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const oauth2Client = new OAuth2();
+    oauth2Client.setCredentials({
+      access_token: code
+    });
+    const youtube = google.youtube({
+      version: 'v3',
+      auth: oauth2Client
+    });
+    // Process and save video details to MongoDB
+    const video = new YoutubeVideo(req.body);
+    await video.save();
+    res.status(201).json({ message: 'Video uploaded successfully' });
+  } catch (error) {
+    console.error('Error uploading video:', error);
+    res.status(500).json({ message: 'Failed to upload video' });
+  }
+}
 
 module.exports = {
   uploadUneditedVideo,
