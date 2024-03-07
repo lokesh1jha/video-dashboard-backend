@@ -1,9 +1,9 @@
-const YoutubeVideo = require('../../models/YoutubeVideo');
-const { google, Auth } = require('googleapis');
-const OAuth2 = google.auth.OAuth2;
+const YoutubeVideo = require('../../models/youtubeVideo');
+const { google } = require('googleapis');
+const { saveYouTubeCredentials, isCredentialsPresent, updateCredentials } = require('../../queries/saveaccountdetails');
+const { uploadVideoToYoutube } = require('../../v1/services/uploadService');
 
-// Controller to upload an unedited video
-const uploadUneditedVideo = async (req, res) => {
+const uploadRawVideo = async (req, res) => {
   try {
     // Process and save video details to MongoDB
     const newVideo = new YoutubeVideo(req.body);
@@ -15,112 +15,89 @@ const uploadUneditedVideo = async (req, res) => {
   }
 };
 
-// Service to upload video to YouTube
-const uploadVideoToYoutube = async (videoId, title, description, filePath) => {
-  try {
-    const redirectUrl = 'http://localhost:5173/dashboard';
-    const { clientId, clientSecret } = process.env; // Assuming you have set these environment variables
 
-    var oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
-
-    // Get the access token from the saved credentials
-    const credentials = JSON.parse(process.env.YOUTUBE_CREDENTIALS); // Assuming you have stored the credentials in an environment variable
-    oauth2Client.credentials = credentials;
-
-    const youtube = google.youtube({
-      version: 'v3',
-      auth: oauth2Client,
-    });
-
-    // Prepare the video metadata
-    const video = {
-      snippet: {
-        title: title,
-        description: description,
-        categoryId: '22', // Replace with the appropriate category ID
-      },
-      status: {
-        privacyStatus: 'private', // You can set this to 'public' or 'unlisted' as well
-      },
-    };
-
-    // Upload the video
-    const response = await youtube.videos.insert({
-      part: 'snippet,status',
-      resource: video,
-      media: {
-        body: fs.createReadStream(filePath),
-      },
-    });
-
-    // Update the video in the database with the YouTube video ID
-    await YoutubeVideo.findByIdAndUpdate(videoId, { youtubeVideoId: response.data.id });
-
-    return response.data;
-  } catch (error) {
-    console.error('Error uploading video to YouTube:', error);
-    throw error; 
-  }
-};
-
-// Controller to upload video to YouTube
 const uploadToYoutube = async (req, res) => {
   try {
-    const { videoId, title, description } = req.body;
-    const filePath = req.file.path; // Assuming you have a file upload middleware in place
+    const { title, description, filePath } = req.body;
+    const { userId } = req.loggedInUser;
 
-    // Upload the video to YouTube
-    const uploadedVideo = await uploadVideoToYoutube(videoId, title, description, filePath);
+    const uploadedVideo = await uploadVideoToYoutube(title, description, filePath, userId);
 
     // Update the video in the database with the YouTube video ID
-    await YoutubeVideo.findByIdAndUpdate(videoId, { youtubeVideoId: uploadedVideo.id });
+    // await YoutubeVideo.findByIdAndUpdate({ youtubeVideoId: uploadedVideo.id });
 
-    res.status(201).json({ message: 'Video uploaded to YouTube successfully', video: uploadedVideo });
+    res.status(200).json({ message: 'Video uploaded to YouTube successfully', video: uploadedVideo });
   } catch (error) {
     console.error('Error uploading video to YouTube:', error);
     res.status(500).json({ message: 'Failed to upload video' });
   }
 };
 
-// Function to save YouTube credentials
+/**
+ * Saves YouTube credentials for the logged-in user and handles updating or saving the credentials based on the user's existing credentials. 
+ *
+ * @param {Object} req - the request object
+ * @param {Object} res - the response object
+ * @return {Promise<void>} - a Promise that resolves with the result of saving the YouTube credentials
+ */
 const youtubeAuthSaveCredentials = async (req, res) => {
   try {
-    const redirectUrl = 'http://localhost:5173/dashboard';
-    const { code, clientId, clientSecret } = req.body;
+    const { userId } = req.loggedInUser;
+    if (!userId) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
-    var oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
+    const { code, clientId, clientSecret, redirectUrl } = req.body;
 
-    oauth2Client.getToken(code, function (err, token) {
-      if (err) {
-        console.log('Error while trying to retrieve access token', err);
-        return;
+    // const token = await getYouTubeCredentials(clientId, clientSecret, code, redirectUrl);
+    
+    const data = {
+      user_id: userId
+    };
+    
+    if (clientId) {
+      data.clientId = clientId;
+    }
+    
+    if (clientSecret) {
+      data.clientSecret = clientSecret;
+    }
+    
+    if (redirectUrl) {
+      data.redirectUri = redirectUrl;
+    }
+    
+    if (code) {
+      data.code = code;
+    }
+    
+
+    const credRes = await isCredentialsPresent(userId);
+    if (credRes.status === 200) {
+      const updateResult = await updateCredentials(data);
+      if (updateResult.status !== 200) {
+        return res.status(400).json({ message: 'YouTube credentials failed to update' });
       }
-      const YOUTUBE_CREDENTIALS = JSON.stringify(token); 
-      console.log("Main Cred", YOUTUBE_CREDENTIALS)
-      res.status(201).json({ message: 'YouTube credentials saved successfully' });
-    });
+      return res.status(201).json({ message: 'YouTube credentials updated successfully' });
+    }
+
+    const saveCredResponse = await saveYouTubeCredentials(data);
+    if (saveCredResponse.status !== 200) {
+      return res.status(400).json({ message: 'YouTube credentials failed to save' });
+    }
+
+    res.status(201).json({ message: 'YouTube credentials saved successfully' });
+
   } catch (error) {
     console.error('Error saving YouTube credentials:', error);
     res.status(500).json({ message: 'Failed to save credentials' });
   }
 };
 
-// const { google } = require('googleapis');
 
-// const getYouTubeCredentials = async (code, redirectUri) => {
-//   const oAuth2Client = new google.auth.OAuth2(
-//     process.env.GOOGLE_CLIENT_ID,
-//     process.env.GOOGLE_CLIENT_SECRET,
-//     redirectUri
-//   );
 
-//   const tokens = await oAuth2Client.getToken(code);
-
-//   return tokens;
-// };
-// Export the functions
 module.exports = {
-  uploadUneditedVideo,
+  uploadRawVideo,
   uploadToYoutube,
   youtubeAuthSaveCredentials,
 };

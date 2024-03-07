@@ -1,6 +1,7 @@
 const { generateToken } = require('../../helpers/utils');
 const { signupService, loginService } = require('../../v1/services/authentication/index');
-const USER_TYPE = ["client", "service_provider"];
+
+
 /**
  * Controller function for user signup.
  *
@@ -14,15 +15,13 @@ const signupController = async (req, res) => {
         const response = await signupService(username, password, email, user_type);
 
         if (response.status === 200) {
-            // User registered successfully
             return res.status(200).json({ status: 200, message: "Registration successful" });
-        } else if (response.status === 400) {
-            // User already registered
-            return res.status(200).json({ status: 400, message: response.message });
         }
+        res.status(400).json({ status: 400, message: response.message });
+
     } catch (error) {
         console.error("Signup Controller Error: ", error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
 
@@ -40,13 +39,13 @@ const loginController = async (req, res) => {
         const loginResponse = await loginService(email, password);
 
         if (loginResponse.status === 200) {
-            const {_id, username, email, user_type} = loginResponse.data
+            const { _id, username, email, user_type } = loginResponse.data
             const payload = { userId: _id, email, username, user_type };
             const token = await generateToken(payload);
-            return res.status(200).json({ message: "Login successful." , token: token});
-        } else {
-            return res.status(400).json({ message: loginResponse.message });
+            return res.status(200).json({ message: "Login successful.", token: token });
         }
+        res.status(400).json({ message: loginResponse.message });
+
     } catch (error) {
         console.error("Login Controller Error: ", error);
         return res.status(500).json({ message: "Internal Server Error" });
@@ -67,11 +66,10 @@ const verifyOTPController = async (req, res) => {
         const otpResponse = await verifyOTPService(email, otp);
 
         if (otpResponse.status === 200) {
-            // OTP verification successful
             return res.status(200).json({ message: "OTP verification successful" });
-        } else {
-            return res.status(400).json({ message: otpResponse.message });
         }
+        res.status(400).json({ message: otpResponse.message });
+
     } catch (error) {
         console.error("Verify OTP Controller Error: ", error);
         return res.status(500).json({ message: "Internal Server Error" });

@@ -1,4 +1,4 @@
-const userModel = require('../models/User');
+const userModel = require('../models/user');
 
 
 exports.userStatus = async (userId) => {

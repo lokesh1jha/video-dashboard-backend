@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const moment = require("moment"); // Assuming you're using moment for date-time manipulation
-const User = require("../models/User");
+const User = require("../models/user");
 const Config = require("../helpers/Config");
 const { userStatus } = require("../queries/users");
 
