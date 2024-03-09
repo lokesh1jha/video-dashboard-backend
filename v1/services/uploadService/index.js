@@ -17,9 +17,11 @@ const uploadVideoToYoutube = async (title, description, videoURL, user_id) => {
       }
       const { clientId, clientSecret, redirectUrl, code } = credential.data;
       var oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl);
-  
       // Get the access token from the saved credentials
+      // ======== failing in token ======= check with json cred file too
       const token = await getYouTubeCredentials(clientId, clientSecret, code, redirectUrl);
+      console.log(token)
+      // return 
       const credentials = JSON.parse(token);
       oauth2Client.credentials = credentials;
   
