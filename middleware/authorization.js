@@ -30,7 +30,6 @@ const authorize = async (req, res, next) => {
     let payload = null;
     try {
       payload = jwt.decode(token, Config.TOKEN_SECRET);
-      console.log(payload)
     } catch (err) {
       resModel.Message = err.message;
       return res.status(401).send(resModel);

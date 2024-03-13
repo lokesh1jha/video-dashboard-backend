@@ -1,4 +1,3 @@
-const { default: mongoose } = require("mongoose");
 const credential = require("../../models/credential");
 
 exports.saveYouTubeCredentials = async (data) => {
@@ -29,10 +28,10 @@ exports.isCredentialsPresent = async (user_id) => {
     }
 }
 
-exports.updateCredentials = async (data) => {
+exports.updateCredentials = async (data, userId) => {
     var resp = { status: 500, message: "" }
     try {
-        let res = await credential.updateOne({ user_id: data.user_id }, data);
+        let res = await credential.updateOne({ user_id: userId }, data);
         resp.status = 200
         resp.data = res
         return resp
@@ -55,4 +54,8 @@ exports.getYouTubeCredentialsByUserId = async (user_id) => {
         resp.message = err.message
         return resp
     }
+}
+
+exports.getClientYoutubeToken = async(userId) => {
+    return await credential.findOne({user_id: userId})
 }
