@@ -1,7 +1,9 @@
 const YoutubeVideo = require('../../models/youtubeVideo');
 const { google } = require('googleapis');
-const { saveYouTubeCredentials, isCredentialsPresent, updateCredentials } = require('../../queries/saveaccountdetails');
+const { saveYouTubeCredentials, updateCredentials, getYouTubeCredentialsByUserId, isCredentialsPresent } = require('../../queries/saveaccountdetails');
 const { uploadVideoToYoutube } = require('../../v1/services/uploadService');
+const { logError, logInfo } = require('../../helpers/logger');
+const { getYouTubeCredentials } = require('../../helpers/youtube');
 
 const uploadRawVideo = async (req, res) => {
   try {
@@ -49,49 +51,52 @@ const youtubeAuthSaveCredentials = async (req, res) => {
 
     const { code, clientId, clientSecret, redirectUrl } = req.body;
 
-    // const token = await getYouTubeCredentials(clientId, clientSecret, code, redirectUrl);
-    
-    const data = {
-      user_id: userId
-    };
-    
-    if (clientId) {
-      data.clientId = clientId;
-    }
-    
-    if (clientSecret) {
-      data.clientSecret = clientSecret;
-    }
-    
-    if (redirectUrl) {
-      data.redirectUri = redirectUrl;
-    }
-    
-    if (code) {
-      data.code = code;
-    }
-    
-
-    const credRes = await isCredentialsPresent(userId);
-    if (credRes.status === 200) {
-      const updateResult = await updateCredentials(data);
-      if (updateResult.status !== 200) {
-        return res.status(400).json({ message: 'YouTube credentials failed to update' });
+    if (clientId && clientSecret && redirectUrl) {
+      let data = {
+        clientId: clientId,
+        clientSecret: clientSecret,
+        redirectUri: redirectUrl
       }
-      return res.status(201).json({ message: 'YouTube credentials updated successfully' });
+      const alreadyCredPresent = await isCredentialsPresent(userId)
+      let saveCredResponse = null
+      if(alreadyCredPresent.status === 200){
+        //update
+        saveCredResponse = await updateCredentials(data, userId)
+      }{
+        //insert
+         saveCredResponse = await saveYouTubeCredentials(data);
+      }
+      if (saveCredResponse.status !== 200) {
+        return res.status(400).json({ message: 'YouTube credentials failed to save' });
+      }
+    }
+    else {
+      // At this instance we have code , userId
+
+      //Now, fetch left credentials details
+      let credValues = await getYouTubeCredentialsByUserId(userId);
+
+      if (credValues.status != 200) {
+        return res.status(400).json({ message: "User's initial credentials not found" })
+      }
+      credValues = credValues.data._doc
+      const token = await getYouTubeCredentials(credValues.clientId, credValues.clientSecret, code, credValues.redirectUri);
+      console.log("token", token)
+      if (token) {
+        let isSaved = await updateCredentials({ token: JSON.stringify(token) }, userId)
+        if (isSaved.status === 200) {
+          return res.status(201).json({ message: 'YouTube credentials updated successfully' });
+        }
+      }
+      return res.status(400).json({ message: "Something went wrong" })
     }
 
-    const saveCredResponse = await saveYouTubeCredentials(data);
-    if (saveCredResponse.status !== 200) {
-      return res.status(400).json({ message: 'YouTube credentials failed to save' });
-    }
-
-    res.status(201).json({ message: 'YouTube credentials saved successfully' });
+    return res.status(201).json({ message: 'YouTube credentials saved successfully' });
 
   } catch (error) {
-    console.error('Error saving YouTube credentials:', error);
-    res.status(500).json({ message: 'Failed to save credentials' });
+    logError("Error saving YouTube credentials: ", error)
   }
+  res.status(500).json({ message: 'Failed to save credentials' });
 };
 
 
