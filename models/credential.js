@@ -5,7 +5,7 @@ const credentialSchema = new mongoose.Schema({
     clientId: { type: String },
     clientSecret: { type: String },
     redirectUri: { type: String },
-    code: { type: String }
+    token: {type: String}
 }, { timestamps: true });
 
 const credential = mongoose.model('Credential', credentialSchema);
