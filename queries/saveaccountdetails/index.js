@@ -47,7 +47,7 @@ exports.getYouTubeCredentialsByUserId = async (user_id) => {
     try {
         let user_res = await credential.findOne({ user_id: user_id });
         resp.status = user_res && Object.keys(user_res).length ? 200 : 400;
-        resp.data = user_res
+        resp.data = user_res ? user_res._doc : {}
         return resp
     } catch (err) {
         console.log(err.message)

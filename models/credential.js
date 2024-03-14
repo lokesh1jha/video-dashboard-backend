@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const credentialSchema = new mongoose.Schema({
-    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    user_id: { type: String},
     clientId: { type: String },
     clientSecret: { type: String },
     redirectUri: { type: String },
