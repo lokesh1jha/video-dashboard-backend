@@ -53,18 +53,20 @@ const youtubeAuthSaveCredentials = async (req, res) => {
 
     if (clientId && clientSecret && redirectUrl) {
       let data = {
+        user_id: userId,
         clientId: clientId,
         clientSecret: clientSecret,
         redirectUri: redirectUrl
       }
       const alreadyCredPresent = await isCredentialsPresent(userId)
       let saveCredResponse = null
-      if(alreadyCredPresent.status === 200){
+      if (alreadyCredPresent.status === 200) {
         //update
         saveCredResponse = await updateCredentials(data, userId)
-      }{
+      }
+      else {
         //insert
-         saveCredResponse = await saveYouTubeCredentials(data);
+        saveCredResponse = await saveYouTubeCredentials(data);
       }
       if (saveCredResponse.status !== 200) {
         return res.status(400).json({ message: 'YouTube credentials failed to save' });
@@ -79,7 +81,7 @@ const youtubeAuthSaveCredentials = async (req, res) => {
       if (credValues.status != 200) {
         return res.status(400).json({ message: "User's initial credentials not found" })
       }
-      credValues = credValues.data._doc
+      credValues = credValues.data
       const token = await getYouTubeCredentials(credValues.clientId, credValues.clientSecret, code, credValues.redirectUri);
       console.log("token", token)
       if (token) {

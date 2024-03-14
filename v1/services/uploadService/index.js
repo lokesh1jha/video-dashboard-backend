@@ -41,43 +41,43 @@ const uploadVideoToYoutube = async (title, description, videoURL, user_id) => {
 
 const uploadVideo = async (user_id, videoFilePath, fs) => {
     try {
-     
-    const credentials = await getYouTubeCredentialsByUserId(user_id)
-    const { clientId, clientSecret, redirectUri, token } = credentials.data;
 
-    const oAuth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
+        const credentials = await getYouTubeCredentialsByUserId(user_id)
+        const { clientId, clientSecret, redirectUri, token } = credentials.data;
 
-    oAuth2Client.setCredentials({refresh_token : JSON.parse(token).access_token});
+        const oAuth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
 
-    const youtube = google.youtube({ version: 'v3', auth: oAuth2Client });
+        oAuth2Client.setCredentials({ refresh_token: JSON.parse(token).access_token });
 
-    const request = youtube.videos.insert(
-        {
-            part: 'snippet,status',
-            requestBody: {
-                snippet: {
-                    title: 'Test Video Title',
-                    description: 'Test Video Description',
+        const youtube = google.youtube({ version: 'v3', auth: oAuth2Client });
+
+        const request = youtube.videos.insert(
+            {
+                part: 'snippet,status',
+                requestBody: {
+                    snippet: {
+                        title: 'Test Video Title',
+                        description: 'Test Video Description',
+                    },
+                    status: {
+                        privacyStatus: 'private', // or 'public' or 'unlisted'
+                    },
                 },
-                status: {
-                    privacyStatus: 'private', // or 'public' or 'unlisted'
+                media: {
+                    body: fs.createReadStream("./" + videoFilePath), // Path to your video file
                 },
             },
-            media: {
-                body: fs.createReadStream("./"+videoFilePath), // Path to your video file
-            },
-        },
-        (err, res) => {
-            if (err) {
-                console.error('Error uploading video:', err);
-                return;
+            (err, res) => {
+                if (err) {
+                    console.error('Error uploading video:', err);
+                    return;
+                }
+                console.log('Video uploaded successfully:', res.data);
+                fs.unlinkSync(videoFilePath)
             }
-            console.log('Video uploaded successfully:', res.data);
-            fs.unlinkSync(tempFilePath)
-        }
-    );   
+        );
     } catch (error) {
-      logError("Error uploading video", error)  
+        logError("Error uploading video", error)
     }
     return "On Process to upload video"
 }
