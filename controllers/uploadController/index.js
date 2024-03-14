@@ -86,7 +86,8 @@ const youtubeAuthSaveCredentials = async (req, res) => {
       console.log("token", token)
       if (token) {
         let isSaved = await updateCredentials({ token: JSON.stringify(token) }, userId)
-        if (isSaved.status === 200) {
+        let updateUserStatus = await activateUserYoutubeAccess(userId);
+        if (isSaved.status === 200 && updateUserStatus.status === 200) {
           return res.status(201).json({ message: 'YouTube credentials updated successfully' });
         }
       }

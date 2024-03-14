@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
     otp: { type: Number },
     is_premium: { type: Number, default: 0 },
     user_type: { type: String, enum: ["client", "service_provider"], default: null },
-    is_user_active: {type: Number, default: 1}
+    is_user_active: {type: Number, default: 1},
+    is_youtube_authenticated: {type: Number, default: 0},
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

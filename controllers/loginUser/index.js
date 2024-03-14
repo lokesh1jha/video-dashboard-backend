@@ -40,7 +40,7 @@ const loginController = async (req, res) => {
 
         if (loginResponse.status === 200) {
             const { _id, username, email, user_type } = loginResponse.data
-            const payload = { userId: _id, email, username, user_type };
+            const payload = { userId: _id, email, username, user_type, is_youtube_authenticated };
             const token = await generateToken(payload);
             return res.status(200).json({ message: "Login successful.", token: token });
         }

@@ -1,4 +1,5 @@
 const credential = require("../../models/credential");
+const User = require("../../models/user");
 
 exports.saveYouTubeCredentials = async (data) => {
     var resp = { status: 500, message: "" }
@@ -42,6 +43,19 @@ exports.updateCredentials = async (data, userId) => {
     }
 }
 
+exports.activateUserYoutubeAccess = async (user_id) => {
+    var resp = { status: 500, message: "" }
+    try {
+        let user_res = await User.updateOne({ _id: user_id }, { $set: { is_youtube_authenticated: 1 } });
+        resp.status = 200
+        resp.data = user_res
+        return resp
+    } catch (err) {
+        console.log(err.message)
+        resp.message = err.message
+        return resp
+    }
+}
 exports.getYouTubeCredentialsByUserId = async (user_id) => {
     var resp = { status: 500, message: "" }
     try {
