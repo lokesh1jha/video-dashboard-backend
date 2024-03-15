@@ -39,12 +39,12 @@ const loginController = async (req, res) => {
         const loginResponse = await loginService(email, password);
 
         if (loginResponse.status === 200) {
-            const { _id, username, email, user_type } = loginResponse.data
+            const { _id, username, email, user_type , is_youtube_authenticated} = loginResponse.data
             const payload = { userId: _id, email, username, user_type, is_youtube_authenticated };
             const token = await generateToken(payload);
-            return res.status(200).json({ message: "Login successful.", token: token });
+            return res.status(200).json({ status: 200,  message: "Login successful.", token: token });
         }
-        res.status(400).json({ message: loginResponse.message });
+        res.status(200).json({status: 400, message: loginResponse.message });
 
     } catch (error) {
         console.error("Login Controller Error: ", error);
