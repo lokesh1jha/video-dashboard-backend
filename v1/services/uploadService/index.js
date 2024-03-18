@@ -5,6 +5,15 @@ const fs = require('fs');
 const { logError } = require('../../../helpers/logger');
 const OAuth2Client = google.auth.OAuth2;
 
+const cloudinary = require('cloudinary').v2;
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 const uploadVideoToYoutube = async (title, description, videoURL, user_id) => {
     try {
         // Download the video file from Cloudinary
@@ -82,4 +91,24 @@ const uploadVideo = async (user_id, videoFilePath, fs) => {
     return "On Process to upload video"
 }
 
-module.exports = { uploadVideoToYoutube };
+
+const uploadEditedVideo = async (videoStream) => {
+  return cloudinary.uploader.upload_stream({ resource_type: 'video' }, (error, result) => {
+    if (error) {
+      throw error;
+    }
+    return result;
+  }).end(videoStream);
+};
+
+const uploadThumbnail = async (thumbnailStream) => {
+  return cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+    if (error) {
+      throw error;
+    }
+    return result;
+  }).end(thumbnailStream);
+};
+
+
+module.exports = { uploadVideoToYoutube, uploadEditedVideo, uploadThumbnail };

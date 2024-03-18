@@ -35,6 +35,34 @@ const uploadToYoutube = async (req, res) => {
   }
 };
 
+
+const uploadEditedVideo = async (req, res) => {
+  try {
+    const { title, description, language, visibility, tags } = req.body;
+
+    // Pass streams directly to service
+    const videoUploadResult = await videoService.uploadVideo(req.files['video'][0].stream);
+    const thumbnailUploadResult = await videoService.uploadThumbnail(req.files['thumbnail'][0].stream);
+
+    const videoData = {
+      title,
+      description,
+      language,
+      visibility,
+      tags: JSON.parse(tags),
+      videoUrl: videoUploadResult.secure_url,
+      thumbnailUrl: thumbnailUploadResult.secure_url
+    };
+
+    await videoService.saveVideo(videoData);
+
+    res.status(200).json({ message: 'Video uploaded successfully' });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Failed to upload video' });
+  }
+};
+
 /**
  * Saves YouTube credentials for the logged-in user and handles updating or saving the credentials based on the user's existing credentials. 
  *
@@ -108,4 +136,5 @@ module.exports = {
   uploadRawVideo,
   uploadToYoutube,
   youtubeAuthSaveCredentials,
+  uploadEditedVideo
 };
