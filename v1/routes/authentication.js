@@ -2,14 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { signupController, loginController, verifyOTPController } = require('../../controllers/loginUser/index');
 const signupValidator = require('../../validator/signupValidator');
+const loginValidator = require('../../validator/loginValidator');
 
-// Route for user registration
 router.post('/register',signupValidator, signupController);
 
-// Route for user login
-router.post('/login', loginController);
+router.post('/login', loginValidator, loginController);
 
-//Route for verify otp
 router.post('/verifyotp', verifyOTPController)
 
 
