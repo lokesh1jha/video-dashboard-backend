@@ -1,6 +1,11 @@
 const userModel = require('../models/user');
 
 
+exports.findUserByUserId = async (_id) => {
+    let result =  await userModel.findById(_id)
+    return result._doc
+} 
+
 exports.userStatus = async (userId) => {
     var resp = { status: 500, message: "" }
     try {
