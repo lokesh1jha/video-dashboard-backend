@@ -1,5 +1,6 @@
 const { logError } = require("../../helpers/logger");
 const { generateToken } = require("../../helpers/utils");
+const { getYouTubeCredentials } = require("../../helpers/youtube");
 const { isCredentialsPresent, updateCredentials, saveYouTubeCredentials, getYouTubeCredentialsByUserId, activateUserYoutubeAccess } = require("../../queries/saveaccountdetails");
 const { findUserByUserId } = require("../../queries/users");
 

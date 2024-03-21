@@ -9,18 +9,17 @@ const cloudinary = require('cloudinary').v2;
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const uploadVideoToYoutube = async (title, description, videoURL, user_id) => {
+const uploadVideoToYoutube = async (videoMetadata, videoURL, user_id) => {
     try {
         // Download the video file from Cloudinary
         const response = await axios.get(videoURL, { responseType: 'stream' });
         const videoStream = response.data;
 
-        // Create a temporary file to store the downloaded video
         const tempFilePath = `temp_video_${user_id}.mp4`;
         const tempFile = fs.createWriteStream(tempFilePath);
         videoStream.pipe(tempFile);
@@ -31,33 +30,28 @@ const uploadVideoToYoutube = async (title, description, videoURL, user_id) => {
             videoStream.on('error', reject);
         });
 
-        // Close the temporary file
         tempFile.close();
 
-        // Upload the video to YouTube
-        const result = await uploadVideo(user_id, tempFilePath, fs);
+        const result = await uploadVideo(videoMetadata, user_id, tempFilePath, fs);
 
-        // delete temp file
-        // fs.unlinkSync(tempFilePath);
-
-        // Return the result data
         return result;
     } catch (error) {
         console.error('Error uploading video to YouTube:', error);
+        if (fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath);
+        }
         throw error;
     }
 };
 
-const uploadVideo = async (user_id, videoFilePath, fs) => {
+const uploadVideo = async (videoMetadata, user_id, videoFilePath, fs) => {
     try {
 
         const credentials = await getYouTubeCredentialsByUserId(user_id)
         const { clientId, clientSecret, redirectUri, token } = credentials.data;
 
         const oAuth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
-
         oAuth2Client.setCredentials({ refresh_token: JSON.parse(token).access_token });
-
         const youtube = google.youtube({ version: 'v3', auth: oAuth2Client });
 
         const request = youtube.videos.insert(
@@ -65,11 +59,11 @@ const uploadVideo = async (user_id, videoFilePath, fs) => {
                 part: 'snippet,status',
                 requestBody: {
                     snippet: {
-                        title: 'Test Video Title',
-                        description: 'Test Video Description',
+                        title: videoMetadata.title,
+                        description: videoMetadata.description,
                     },
                     status: {
-                        privacyStatus: 'private', // or 'public' or 'unlisted'
+                        privacyStatus: videoMetadata.visibility, // or 'public' or 'unlisted'
                     },
                 },
                 media: {
@@ -83,6 +77,7 @@ const uploadVideo = async (user_id, videoFilePath, fs) => {
                 }
                 console.log('Video uploaded successfully:', res.data);
                 fs.unlinkSync(videoFilePath)
+                return res.data;
             }
         );
     } catch (error) {
@@ -92,23 +87,31 @@ const uploadVideo = async (user_id, videoFilePath, fs) => {
 }
 
 
-const uploadEditedVideo = async (videoStream) => {
-  return cloudinary.uploader.upload_stream({ resource_type: 'video' }, (error, result) => {
-    if (error) {
-      throw error;
+const uploadVideoToCloud = async (videoStream) => {
+    try {
+        return cloudinary.uploader.upload_stream({ resource_type: 'video' }, (error, result) => {
+            if (error) {
+                throw error;
+            }
+            return result;
+        }).end(videoStream);
+    } catch (error) {
+        logError("uploadVideoToCloud Error: ".error)
     }
-    return result;
-  }).end(videoStream);
 };
 
 const uploadThumbnail = async (thumbnailStream) => {
-  return cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
-    if (error) {
-      throw error;
+    try {
+        return cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+            if (error) {
+                throw error;
+            }
+            return result;
+        }).end(thumbnailStream);
+    } catch (error) {
+        logError("uploadThumbnail Error: ".error)
     }
-    return result;
-  }).end(thumbnailStream);
 };
 
 
-module.exports = { uploadVideoToYoutube, uploadEditedVideo, uploadThumbnail };
+module.exports = { uploadVideoToYoutube, uploadVideoToCloud, uploadThumbnail };

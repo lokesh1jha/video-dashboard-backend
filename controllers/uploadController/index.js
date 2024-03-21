@@ -1,5 +1,5 @@
 const YoutubeVideo = require('../../models/youtubeVideo');
-const { uploadVideoToYoutube } = require('../../v1/services/uploadService');
+const { uploadVideoToYoutube, uploadThumbnail, uploadVideoToCloud } = require('../../v1/services/uploadService');
 
 const uploadRawVideo = async (req, res) => {
   try {
@@ -18,8 +18,15 @@ const uploadToYoutube = async (req, res) => {
   try {
     const { title, description, filePath } = req.body;
     const { userId } = req.loggedInUser;
-
-    const uploadedVideo = await uploadVideoToYoutube(title, description, filePath, userId);
+    const videoMetadata = {
+      title,
+      description,
+      language: 'en',
+      visibility: 'private',
+      tags: [],
+      thumbnailURL: '',
+    }
+    const uploadedVideo = await uploadVideoToYoutube(videoMetadata, filePath, userId);
 
     // Update the video in the database with the YouTube video ID
     // await YoutubeVideo.findByIdAndUpdate({ youtubeVideoId: uploadedVideo.id });
@@ -35,16 +42,19 @@ const uploadToYoutube = async (req, res) => {
 const uploadEditedVideo = async (req, res) => {
   try {
     const { title, description, language, visibility, tags } = req.body;
+    if(req.files['video'] === undefined || req.files['thumbnail'] === undefined) {
+      return res.status(400).json({ error: 'Missing video or thumbnail' });
+    }
 
-    const videoUploadResult = await videoService.uploadVideo(req.files['video'][0].stream);
-    const thumbnailUploadResult = await videoService.uploadThumbnail(req.files['thumbnail'][0].stream);
+    const videoUploadResult = await uploadVideoToCloud(req.files['video'][0].stream);
+    const thumbnailUploadResult = await uploadThumbnail(req.files['thumbnail'][0].stream);
 
     const videoData = {
       title,
       description,
       language,
       visibility,
-      tags: JSON.parse(tags),
+      tags: JSON.parse(tags), // need to check this
       videoUrl: videoUploadResult.secure_url,
       thumbnailUrl: thumbnailUploadResult.secure_url
     };
