@@ -17,7 +17,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/auth", auth)
 app.use(route)
-mongoose.connect('mongodb://localhost:27017/video-dashboard', {
+
+mongoose.connect(process.env.MONGODB_STRING || 'mongodb://localhost:27017/video-dashboard', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
