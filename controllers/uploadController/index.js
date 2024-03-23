@@ -1,5 +1,6 @@
+const { logError } = require('../../helpers/logger');
 const YoutubeVideo = require('../../models/youtubeVideo');
-const { uploadVideoToYoutube, uploadThumbnail, uploadVideoToCloud } = require('../../v1/services/uploadService');
+const { uploadVideoToYoutube, uploadThumbnail, uploadVideoToCloud, saveVideoMetaDataService, fetchVideoMetaData } = require('../../v1/services/uploadService');
 
 const uploadRawVideo = async (req, res) => {
   try {
@@ -59,20 +60,37 @@ const uploadEditedVideo = async (req, res) => {
       thumbnailUrl: thumbnailUploadResult.secure_url
     };
 
-    await videoService.saveVideo(videoData);
+    await saveVideoMetaDataService(videoData);
 
     res.status(200).json({ message: 'Video uploaded successfully' });
   } catch (error) {
-    console.error('Upload error:', error);
+    logError('Upload error in uploadEditedVideo controller:', error);
     res.status(500).json({ error: 'Failed to upload video' });
   }
 };
 
+const getVideoMetaData = async (req, res) => {
+try {
+  const user_id = req.loggedInUser.userId;
+  const videoId = req.params.videoId;
 
+  // user_id => User X will not be able to access the video metadata of User Y
+  const response = await fetchVideoMetaData(videoId, user_id);
 
+  if (!response) {
+    return res.status(404).json({ error: 'Video not found' });
+  }
+  
+  res.status(200).json({ data: response , message: 'Video metadata fetched successfully'});
+} catch (error) {
+  logError('getVideoMetaData error:', error);
+  res.status(500).json({ error: 'Failed to get video metadata' });
+}
+}
 
 module.exports = {
   uploadRawVideo,
   uploadToYoutube,
-  uploadEditedVideo
+  uploadEditedVideo,
+  getVideoMetaData
 };

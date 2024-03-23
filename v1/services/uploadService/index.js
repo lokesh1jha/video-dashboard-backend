@@ -3,6 +3,7 @@ const { default: axios } = require('axios');
 const { google } = require('googleapis');
 const fs = require('fs');
 const { logError } = require('../../../helpers/logger');
+const { addVideoMetaData, getYoutubeMetaData } = require('../../../queries/videos/index.js');
 const OAuth2Client = google.auth.OAuth2;
 
 const cloudinary = require('cloudinary').v2;
@@ -113,5 +114,27 @@ const uploadThumbnail = async (thumbnailStream) => {
     }
 };
 
+const saveVideoMetaDataService = async (videoData) => {
+    try {
+        const newVideo = await addVideoMetaData(videoData);
+        return newVideo;
+    } catch (error) {
+        logError("saveVideoMetaDataService Error: ".error)
+    }
+}
 
-module.exports = { uploadVideoToYoutube, uploadVideoToCloud, uploadThumbnail };
+const fetchVideoMetaData = async (videoId, user_id) => {
+    try {
+        const response = await getYoutubeMetaData(videoId, user_id)
+        return response
+    } catch (error) {
+        logError("fetchVideoMetaData Error: ".error)
+    }
+}
+module.exports = {
+    uploadVideoToYoutube,
+    uploadVideoToCloud,
+    uploadThumbnail,
+    saveVideoMetaDataService,
+    fetchVideoMetaData
+};
