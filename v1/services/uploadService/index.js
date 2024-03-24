@@ -3,15 +3,15 @@ const { default: axios } = require('axios');
 const { google } = require('googleapis');
 const fs = require('fs');
 const { logError } = require('../../../helpers/logger');
+const { addVideoMetaData, getYoutubeMetaData } = require('../../../queries/videos/index.js');
 const OAuth2Client = google.auth.OAuth2;
+const AWS = require('aws-sdk');
+const { v4: uuidv4 } = require('uuid');
+const bucketName = process.env.AWS_BUCKET_NAME;
 
-const cloudinary = require('cloudinary').v2;
-
-// Configure Cloudinary
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
 const uploadVideoToYoutube = async (videoMetadata, videoURL, user_id) => {
@@ -87,31 +87,69 @@ const uploadVideo = async (videoMetadata, user_id, videoFilePath, fs) => {
 }
 
 
-const uploadVideoToCloud = async (videoStream) => {
-    try {
-        return cloudinary.uploader.upload_stream({ resource_type: 'video' }, (error, result) => {
-            if (error) {
-                throw error;
-            }
-            return result;
-        }).end(videoStream);
-    } catch (error) {
-        logError("uploadVideoToCloud Error: ".error)
-    }
-};
 
-const uploadThumbnail = async (thumbnailStream) => {
-    try {
-        return cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
-            if (error) {
-                throw error;
-            }
-            return result;
-        }).end(thumbnailStream);
-    } catch (error) {
-        logError("uploadThumbnail Error: ".error)
-    }
+const uploadVideoToS3 = async (videoStream) => {
+  try {
+    const videoKey = `videos/edited/${uuidv4()}.mp4`;
+
+    const params = {
+      Bucket: bucketName,
+      Key: videoKey,
+      Body: videoStream,
+      ContentType: 'video/mp4',
+    };
+
+    const uploadResult = await s3.upload(params).promise();
+
+    return uploadResult.Location; // Return the S3 URL of the uploaded video
+  } catch (error) {
+    console.error('uploadVideoToS3 Error:', error);
+    throw error;
+  }
 };
 
 
-module.exports = { uploadVideoToYoutube, uploadVideoToCloud, uploadThumbnail };
+const uploadThumbnailToS3 = async (thumbnailStream) => {
+    try {
+      const thumbnailKey = `thumbnails/${uuidv4()}.jpg`;
+  
+      const params = {
+        Bucket: bucketName,
+        Key: thumbnailKey,
+        Body: thumbnailStream,
+        ContentType: 'image/jpeg', 
+      };
+  
+      const uploadResult = await s3.upload(params).promise();
+  
+      return uploadResult.Location; 
+    } catch (error) {
+      console.error('uploadThumbnailToS3 Error:', error);
+      throw error;
+    }
+  };
+
+const saveVideoMetaDataService = async (videoData) => {
+    try {
+        const newVideo = await addVideoMetaData(videoData);
+        return newVideo;
+    } catch (error) {
+        logError("saveVideoMetaDataService Error: ".error)
+    }
+}
+
+const fetchVideoMetaData = async (videoId, user_id) => {
+    try {
+        const response = await getYoutubeMetaData(videoId, user_id)
+        return response
+    } catch (error) {
+        logError("fetchVideoMetaData Error: ".error)
+    }
+}
+module.exports = {
+    uploadVideoToYoutube,
+    uploadVideoToS3,
+    uploadThumbnailToS3,
+    saveVideoMetaDataService,
+    fetchVideoMetaData
+};

@@ -4,7 +4,7 @@ const router = express.Router();
 const UploadController = require('../../controllers/uploadController');
 const youtubeCredControlller = require('../../controllers/youtubeAccount');
 const { authorize } = require('../../middleware/authorization.js');
-const validateCredentials = require('../../models/validateCredentials.js');
+const validateCredentials = require('../../validator/validateCredentials.js');
 
 
 router.post('/uploadtoyoutube',validateCredentials, authorize,  UploadController.uploadToYoutube);
