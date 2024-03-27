@@ -87,7 +87,7 @@ const uploadVideo = async (videoMetadata, user_id, videoFilePath, fs) => {
 }
 
 
-
+// wip:
 const uploadVideoToS3 = async (videoStream) => {
   try {
     const videoKey = `videos/edited/${uuidv4()}.mp4`;
