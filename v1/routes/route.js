@@ -6,10 +6,11 @@ const youtubeCredControlller = require('../../controllers/youtubeAccount');
 const { authorize } = require('../../middleware/authorization.js');
 const validateCredentials = require('../../validator/validateCredentials.js');
 
+router.get('/getsigneds3url', authorize, UploadController.getSigneds3url);
+
 
 router.post('/uploadtoyoutube',validateCredentials, authorize,  UploadController.uploadToYoutube);
 router.post('/uploadtocloud', authorize,  UploadController.uploadEditedVideo);
-
 router.post('/saveyoutubedetails', authorize, youtubeCredControlller.youtubeAuthSaveCredentials);
 
 module.exports = router;
